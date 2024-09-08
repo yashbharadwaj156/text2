@@ -4828,3 +4828,326 @@ Imagine youâ€™re distributing 100 units of resources among 4 projects. You donâ€
 
 The Dirichlet distribution is specifically used in this case because it generates proportions that sum to 1, making it ideal for tasks involving allocation across multiple categories. The Gamma distribution is not directly used in this scenario; however, understanding its role helps explain why the Dirichlet distribution is effective for generating proportions.
 
+
+
+///////////////////////////////////////
+### Overview of the Code
+
+The `create_clients` function is designed to split a dataset `X` (features) and `y` (labels) among a specified number of clients (`num_clients`). It uses a function `generate_random_proportions` to assign data to each client based on attack proportions (for different types of attacks and benign traffic). The data is then distributed according to these proportions.
+
+Let's go step-by-step through each part of the code and explain how it works.
+
+### 1. **Function Definition and Initial Setup**
+
+```python
+def create_clients(X, y, num_clients=10, initial='clients'):
+```
+
+- **`X`**: The feature matrix of the dataset.
+- **`y`**: The label vector for the dataset, where each entry corresponds to a sample's label.
+- **`num_clients`**: The number of clients to create (default is 10).
+- **`initial`**: A string that will be used as a prefix for client names (default is `'clients'`).
+
+### 2. **Create Client Names and Initialize Data Structures**
+
+```python
+    client_names = [f'{initial}_{i+1}' for i in range(num_clients)]
+    clients = {client_name: [] for client_name in client_names}
+    proportions_dict = {client_name: {} for client_name in client_names}
+```
+
+- **`client_names`**: A list comprehension that generates names for each client, like `clients_1`, `clients_2`, ..., `clients_10`.
+  
+- **`clients`**: A dictionary where the keys are client names and the values are empty lists that will later hold the data for each client.
+  
+- **`proportions_dict`**: A dictionary where the keys are client names, and the values will be dictionaries holding the proportions of different attacks and benign traffic assigned to each client.
+
+### 3. **Determine the Number of Attack Types**
+
+```python
+    num_attacks = len(np.unique(y)) - 1  # Exclude the benign class
+```
+
+- **`np.unique(y)`**: Finds all unique labels in the dataset. The assumption here is that the label `0` represents benign traffic, while other labels represent different types of attacks.
+  
+- **`num_attacks`**: Calculates the number of attack types by subtracting 1 (to exclude the benign class).
+
+### 4. **Shuffle Indices**
+
+```python
+    all_indices = np.arange(len(y))
+    np.random.shuffle(all_indices)  # Shuffle all indices to ensure randomness
+```
+
+- **`all_indices`**: Creates an array of indices that range from 0 to the length of the dataset (`y`).
+  
+- **`np.random.shuffle(all_indices)`**: Shuffles the indices to introduce randomness in the assignment of data to clients.
+
+### 5. **Loop Over Each Client and Assign Data**
+
+```python
+    for client_name in client_names:
+        attack_proportions = generate_random_proportions(num_attacks)
+        client_data_indices = []
+        proportions_dict[client_name] = attack_proportions  # Store proportions
+```
+
+- **`for client_name in client_names:`**: Loops over each client name.
+  
+- **`generate_random_proportions(num_attacks)`**: Calls the `generate_random_proportions` function to get a dictionary of proportions for each client. This dictionary contains the proportion of data that each client will get from different attack types and benign traffic.
+
+- **`client_data_indices`**: An empty list that will store the indices of data samples assigned to this particular client.
+
+- **`proportions_dict[client_name] = attack_proportions`**: Stores the generated attack proportions in the `proportions_dict`.
+
+### 6. **Assign Data According to Proportions**
+
+```python
+        for attack_type, proportion in attack_proportions.items():
+            if attack_type == 'benign':
+                attack_indices = np.where(y[all_indices] == 0)[0]
+            else:
+                attack_indices = np.where(y[all_indices] == attack_type)[0]
+```
+
+- **`for attack_type, proportion in attack_proportions.items()`**: Loops over each attack type (or benign class) and its associated proportion for the current client.
+
+- **`np.where(y[all_indices] == 0)[0]`**: If the attack type is `'benign'`, it finds the indices where the label is `0` (benign class).
+
+- **`np.where(y[all_indices] == attack_type)[0]`**: If the attack type is not benign, it finds the indices where the label matches the `attack_type`.
+
+### 7. **Select and Assign Data Samples to the Client**
+
+```python
+            if len(attack_indices) > 0:
+                selected_indices = np.random.choice(attack_indices, int(len(attack_indices) * proportion), replace=False)
+                client_data_indices.extend(all_indices[selected_indices])
+                all_indices = np.setdiff1d(all_indices, all_indices[selected_indices])  # Remove assigned indices
+```
+
+- **`np.random.choice(attack_indices, int(len(attack_indices) * proportion), replace=False)`**: Selects a random subset of indices from `attack_indices`, based on the calculated proportion for the attack type.
+  
+  - For example, if the attack proportion is 0.3 and there are 100 indices for this attack type, it selects `int(100 * 0.3) = 30` samples.
+
+- **`client_data_indices.extend(all_indices[selected_indices])`**: Adds the selected indices to the `client_data_indices` list.
+
+- **`np.setdiff1d(all_indices, all_indices[selected_indices])`**: Removes the assigned indices from `all_indices` so that they are not reused for another client.
+
+### 8. **Assign the Data to the Client**
+
+```python
+        clients[client_name] = (X[client_data_indices], y[client_data_indices])
+```
+
+- **`clients[client_name] = (X[client_data_indices], y[client_data_indices])`**: Assigns the selected data samples (both features `X` and labels `y`) to the current client.
+
+### 9. **Distribute Remaining Data**
+
+```python
+    remaining_indices = all_indices
+    for i, client_name in enumerate(client_names):
+        if len(remaining_indices) > 0:
+            chunk_size = len(remaining_indices) // (num_clients - i)
+            if chunk_size > 0:
+                clients[client_name] = (np.append(clients[client_name][0], X[remaining_indices[:chunk_size]], axis=0),
+                                        np.append(clients[client_name][1], y[remaining_indices[:chunk_size]], axis=0))
+                remaining_indices = remaining_indices[chunk_size:]
+```
+
+- **`remaining_indices = all_indices`**: Stores any remaining indices that were not assigned to clients in the main loop.
+  
+- **`for i, client_name in enumerate(client_names):`**: Loops over the clients again.
+
+- **`chunk_size = len(remaining_indices) // (num_clients - i)`**: Determines how many remaining indices to assign to the current client. It splits the remaining data proportionally among the remaining clients.
+
+- **`np.append()`**: Adds the remaining samples to the client's data.
+
+- **`remaining_indices = remaining_indices[chunk_size:]`**: Updates `remaining_indices` by removing the chunk that was just assigned to the current client.
+
+### 10. **Print Proportions and Return the Clients**
+
+```python
+    for client_name, proportions in proportions_dict.items():
+        print(f"Client {client_name} proportions: {proportions}")
+
+    return clients
+```
+
+- **`print(f"Client {client_name} proportions: {proportions}")`**: Prints the attack and benign proportions for each client.
+  
+- **`return clients`**: Returns the final dictionary `clients`, which contains the assigned data for each client.
+
+---
+
+### Real-Life Example of Data Splitting
+
+Assume you have a dataset with 1000 samples and 3 types of attacks (attack1, attack2, attack3), as well as benign data. You want to distribute these 1000 samples to 10 clients.
+
+For each client:
+1. A proportion of benign and attack samples is randomly generated (e.g., `{'attack1': 0.4, 'attack2': 0.2, 'attack3': 0.3, 'benign': 0.1}`).
+2. For client 1:
+   - 40% of attack1 samples, 20% of attack2 samples, 30% of attack3 samples, and 10% of benign samples are selected and assigned.
+3. The indices of these selected samples are removed from the pool of available indices.
+4. The process repeats for the next client, using the remaining samples.
+
+In the end, each client has a subset of the data, and the proportions reflect the randomly generated values for that client. If any data remains after assigning based on proportions, it is distributed randomly to clients to ensure no data is left out.### Overview of the Code
+
+The `create_clients` function is designed to split a dataset `X` (features) and `y` (labels) among a specified number of clients (`num_clients`). It uses a function `generate_random_proportions` to assign data to each client based on attack proportions (for different types of attacks and benign traffic). The data is then distributed according to these proportions.
+
+Let's go step-by-step through each part of the code and explain how it works.
+
+### 1. **Function Definition and Initial Setup**
+
+```python
+def create_clients(X, y, num_clients=10, initial='clients'):
+```
+
+- **`X`**: The feature matrix of the dataset.
+- **`y`**: The label vector for the dataset, where each entry corresponds to a sample's label.
+- **`num_clients`**: The number of clients to create (default is 10).
+- **`initial`**: A string that will be used as a prefix for client names (default is `'clients'`).
+
+### 2. **Create Client Names and Initialize Data Structures**
+
+```python
+    client_names = [f'{initial}_{i+1}' for i in range(num_clients)]
+    clients = {client_name: [] for client_name in client_names}
+    proportions_dict = {client_name: {} for client_name in client_names}
+```
+
+- **`client_names`**: A list comprehension that generates names for each client, like `clients_1`, `clients_2`, ..., `clients_10`.
+  
+- **`clients`**: A dictionary where the keys are client names and the values are empty lists that will later hold the data for each client.
+  
+- **`proportions_dict`**: A dictionary where the keys are client names, and the values will be dictionaries holding the proportions of different attacks and benign traffic assigned to each client.
+
+### 3. **Determine the Number of Attack Types**
+
+```python
+    num_attacks = len(np.unique(y)) - 1  # Exclude the benign class
+```
+
+- **`np.unique(y)`**: Finds all unique labels in the dataset. The assumption here is that the label `0` represents benign traffic, while other labels represent different types of attacks.
+  
+- **`num_attacks`**: Calculates the number of attack types by subtracting 1 (to exclude the benign class).
+
+### 4. **Shuffle Indices**
+
+```python
+    all_indices = np.arange(len(y))
+    np.random.shuffle(all_indices)  # Shuffle all indices to ensure randomness
+```
+
+- **`all_indices`**: Creates an array of indices that range from 0 to the length of the dataset (`y`).
+  
+- **`np.random.shuffle(all_indices)`**: Shuffles the indices to introduce randomness in the assignment of data to clients.
+
+### 5. **Loop Over Each Client and Assign Data**
+
+```python
+    for client_name in client_names:
+        attack_proportions = generate_random_proportions(num_attacks)
+        client_data_indices = []
+        proportions_dict[client_name] = attack_proportions  # Store proportions
+```
+
+- **`for client_name in client_names:`**: Loops over each client name.
+  
+- **`generate_random_proportions(num_attacks)`**: Calls the `generate_random_proportions` function to get a dictionary of proportions for each client. This dictionary contains the proportion of data that each client will get from different attack types and benign traffic.
+
+- **`client_data_indices`**: An empty list that will store the indices of data samples assigned to this particular client.
+
+- **`proportions_dict[client_name] = attack_proportions`**: Stores the generated attack proportions in the `proportions_dict`.
+
+### 6. **Assign Data According to Proportions**
+
+```python
+        for attack_type, proportion in attack_proportions.items():
+            if attack_type == 'benign':
+                attack_indices = np.where(y[all_indices] == 0)[0]
+            else:
+                attack_indices = np.where(y[all_indices] == attack_type)[0]
+```
+
+- **`for attack_type, proportion in attack_proportions.items()`**: Loops over each attack type (or benign class) and its associated proportion for the current client.
+
+- **`np.where(y[all_indices] == 0)[0]`**: If the attack type is `'benign'`, it finds the indices where the label is `0` (benign class).
+
+- **`np.where(y[all_indices] == attack_type)[0]`**: If the attack type is not benign, it finds the indices where the label matches the `attack_type`.
+
+### 7. **Select and Assign Data Samples to the Client**
+
+```python
+            if len(attack_indices) > 0:
+                selected_indices = np.random.choice(attack_indices, int(len(attack_indices) * proportion), replace=False)
+                client_data_indices.extend(all_indices[selected_indices])
+                all_indices = np.setdiff1d(all_indices, all_indices[selected_indices])  # Remove assigned indices
+```
+
+- **`np.random.choice(attack_indices, int(len(attack_indices) * proportion), replace=False)`**: Selects a random subset of indices from `attack_indices`, based on the calculated proportion for the attack type.
+  
+  - For example, if the attack proportion is 0.3 and there are 100 indices for this attack type, it selects `int(100 * 0.3) = 30` samples.
+
+- **`client_data_indices.extend(all_indices[selected_indices])`**: Adds the selected indices to the `client_data_indices` list.
+
+- **`np.setdiff1d(all_indices, all_indices[selected_indices])`**: Removes the assigned indices from `all_indices` so that they are not reused for another client.
+
+### 8. **Assign the Data to the Client**
+
+```python
+        clients[client_name] = (X[client_data_indices], y[client_data_indices])
+```
+
+- **`clients[client_name] = (X[client_data_indices], y[client_data_indices])`**: Assigns the selected data samples (both features `X` and labels `y`) to the current client.
+
+### 9. **Distribute Remaining Data**
+
+```python
+    remaining_indices = all_indices
+    for i, client_name in enumerate(client_names):
+        if len(remaining_indices) > 0:
+            chunk_size = len(remaining_indices) // (num_clients - i)
+            if chunk_size > 0:
+                clients[client_name] = (np.append(clients[client_name][0], X[remaining_indices[:chunk_size]], axis=0),
+                                        np.append(clients[client_name][1], y[remaining_indices[:chunk_size]], axis=0))
+                remaining_indices = remaining_indices[chunk_size:]
+```
+
+- **`remaining_indices = all_indices`**: Stores any remaining indices that were not assigned to clients in the main loop.
+  
+- **`for i, client_name in enumerate(client_names):`**: Loops over the clients again.
+
+- **`chunk_size = len(remaining_indices) // (num_clients - i)`**: Determines how many remaining indices to assign to the current client. It splits the remaining data proportionally among the remaining clients.
+
+- **`np.append()`**: Adds the remaining samples to the client's data.
+
+- **`remaining_indices = remaining_indices[chunk_size:]`**: Updates `remaining_indices` by removing the chunk that was just assigned to the current client.
+
+### 10. **Print Proportions and Return the Clients**
+
+```python
+    for client_name, proportions in proportions_dict.items():
+        print(f"Client {client_name} proportions: {proportions}")
+
+    return clients
+```
+
+- **`print(f"Client {client_name} proportions: {proportions}")`**: Prints the attack and benign proportions for each client.
+  
+- **`return clients`**: Returns the final dictionary `clients`, which contains the assigned data for each client.
+
+---
+
+### Real-Life Example of Data Splitting
+
+Assume you have a dataset with 1000 samples and 3 types of attacks (attack1, attack2, attack3), as well as benign data. You want to distribute these 1000 samples to 10 clients.
+
+For each client:
+1. A proportion of benign and attack samples is randomly generated (e.g., `{'attack1': 0.4, 'attack2': 0.2, 'attack3': 0.3, 'benign': 0.1}`).
+2. For client 1:
+   - 40% of attack1 samples, 20% of attack2 samples, 30% of attack3 samples, and 10% of benign samples are selected and assigned.
+3. The indices of these selected samples are removed from the pool of available indices.
+4. The process repeats for the next client, using the remaining samples.
+
+In the end, each client has a subset of the data, and the proportions reflect the randomly generated values for that client. If any data remains after assigning based on proportions, it is distributed randomly to clients to ensure no data is left out.
+
