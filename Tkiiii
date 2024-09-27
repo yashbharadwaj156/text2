@@ -1,0 +1,121 @@
+import json
+import difflib
+import tkinter as tk
+from tkinter import scrolledtext, filedialog
+
+class NotebookComparator:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Jupyter Notebook Comparator")
+
+        # Create a frame for the two notebooks
+        self.frame = tk.Frame(self.root)
+        self.frame.pack(fill=tk.BOTH, expand=True)
+
+        # Create text areas for notebook comparison
+        self.left_text = scrolledtext.ScrolledText(self.frame, width=50, wrap=tk.WORD)
+        self.left_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        self.right_text = scrolledtext.ScrolledText(self.frame, width=50, wrap=tk.WORD)
+        self.right_text.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
+
+        # Create a menu for opening files
+        self.menu = tk.Menu(self.root)
+        self.root.config(menu=self.menu)
+        self.file_menu = tk.Menu(self.menu, tearoff=0)
+        self.menu.add_cascade(label="File", menu=self.file_menu)
+        self.file_menu.add_command(label="Open Notebook 1", command=self.load_notebook1)
+        self.file_menu.add_command(label="Open Notebook 2", command=self.load_notebook2)
+        self.file_menu.add_separator()
+        self.file_menu.add_command(label="Exit", command=self.root.quit)
+
+        self.notebook1 = None
+        self.notebook2 = None
+
+    def load_notebook1(self):
+        """Load the first Jupyter notebook and display its code."""
+        self.notebook1 = self.load_notebook(filedialog.askopenfilename(filetypes=[("Jupyter Notebooks", "*.ipynb")]))
+        self.display_diff()
+
+    def load_notebook2(self):
+        """Load the second Jupyter notebook and display its code."""
+        self.notebook2 = self.load_notebook(filedialog.askopenfilename(filetypes=[("Jupyter Notebooks", "*.ipynb")]))
+        self.display_diff()
+
+    def load_notebook(self, file_path):
+        """Load a Jupyter notebook as JSON."""
+        with open(file_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+
+    def extract_code_cells(self, notebook):
+        """Extract all the code cells from the notebook."""
+        return [cell['source'] for cell in notebook['cells'] if cell['cell_type'] == 'code']
+
+    def display_diff(self):
+        """Display the differences between the two notebooks."""
+        if self.notebook1 is None or self.notebook2 is None:
+            return
+        
+        # Clear the text areas
+        self.left_text.delete(1.0, tk.END)
+        self.right_text.delete(1.0, tk.END)
+
+        # Extract code cells
+        code1 = self.extract_code_cells(self.notebook1)
+        code2 = self.extract_code_cells(self.notebook2)
+
+        # Compare the code cells and get differences
+        self.show_diff(code1, code2)
+
+    def show_diff(self, code1, code2):
+        """Show the differences between two lists of code."""
+        # Use difflib to create a unified diff
+        diff = difflib.unified_diff(code1, code2, lineterm='', fromfile='Notebook 1', tofile='Notebook 2')
+
+        left_lines = []
+        right_lines = []
+        for line in diff:
+            if line.startswith('-'):
+                left_lines.append(line[1:])  # Code in notebook 1 (removal)
+            elif line.startswith('+'):
+                right_lines.append(line[1:])  # Code in notebook 2 (addition)
+            else:
+                # Common lines
+                left_lines.append(line)
+                right_lines.append(line)
+
+        # Insert the code into the left and right text areas
+        self.left_text.insert(tk.END, "\n".join(left_lines))
+        self.right_text.insert(tk.END, "\n".join(right_lines))
+
+        # Highlight differences
+        self.highlight_differences()
+
+    def highlight_differences(self):
+        """Highlight differences in both text areas."""
+        # Get the contents of both text areas
+        left_content = self.left_text.get(1.0, tk.END)
+        right_content = self.right_text.get(1.0, tk.END)
+
+        # Highlight differences in the left text area
+        for i, line in enumerate(left_content.splitlines()):
+            if line.startswith('-'):
+                self.left_text.tag_add("diff", f"{i + 1}.0", f"{i + 1}.end")
+            else:
+                self.left_text.tag_add("normal", f"{i + 1}.0", f"{i + 1}.end")
+
+        # Highlight differences in the right text area
+        for i, line in enumerate(right_content.splitlines()):
+            if line.startswith('+'):
+                self.right_text.tag_add("diff", f"{i + 1}.0", f"{i + 1}.end")
+            else:
+                self.right_text.tag_add("normal", f"{i + 1}.0", f"{i + 1}.end")
+
+        # Configure the tag styles
+        self.left_text.tag_config("diff", background="lightcoral")
+        self.right_text.tag_config("diff", background="lightgreen")
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = NotebookComparator(root)
+    root.mainloop()
