@@ -145,3 +145,79 @@ if __name__ == "__main__":
             run_script(choice)
         except ValueError:
             print(Fore.RED + "Invalid input. Please enter a valid number between 1 and 6.")
+
+
+
+
+
+
+
+
+
+
+
+
+import subprocess
+import os
+from colorama import init, Fore, Style
+
+# Initialize colorama for colorful terminal output
+init(autoreset=True)
+
+def run_notebook(option):
+    # Dictionary mapping options to notebook paths and descriptions
+    notebooks = {
+        1: {"path": "notebook1.ipynb", "description": "Description of notebook 1"},
+        2: {"path": "notebook2.ipynb", "description": "Description of notebook 2"},
+        3: {"path": "notebook3.ipynb", "description": "Description of notebook 3"},
+        4: {"path": "notebook4.ipynb", "description": "Description of notebook 4"},
+        5: {"path": "notebook5.ipynb", "description": "Description of notebook 5"},
+        6: {"path": "notebook6.ipynb", "description": "Description of notebook 6"}
+    }
+
+    # Validate option
+    if option not in notebooks:
+        print(Fore.RED + "Invalid option. Please choose a number between 1 and 6.")
+        return
+    
+    notebook_to_run = notebooks[option]["path"]
+
+    # Check if the notebook file exists
+    if not os.path.exists(notebook_to_run):
+        print(Fore.RED + f"Error: {notebook_to_run} not found!")
+        return
+
+    try:
+        print(Fore.YELLOW + f"Opening {notebook_to_run} in Jupyter Notebook...")
+        
+        # Use subprocess to open the notebook with Jupyter in a browser
+        subprocess.run(["jupyter", "notebook", notebook_to_run])
+
+        print(Fore.GREEN + f"{notebook_to_run} opened successfully!")
+    except Exception as e:
+        print(Fore.RED + f"Error opening {notebook_to_run}: {e}")
+
+def display_menu():
+    print(Style.BRIGHT + Fore.CYAN + "\nWelcome to the Jupyter Notebook Selector!\n")
+    print(Style.BRIGHT + Fore.BLUE + "Choose a notebook to open:")
+    
+    # Display options with descriptions
+    print(Fore.GREEN + "1. Open notebook1.ipynb (Description: Data Cleaning)")
+    print(Fore.GREEN + "2. Open notebook2.ipynb (Description: Data Analysis)")
+    print(Fore.GREEN + "3. Open notebook3.ipynb (Description: Model Training)")
+    print(Fore.GREEN + "4. Open notebook4.ipynb (Description: Model Evaluation)")
+    print(Fore.GREEN + "5. Open notebook5.ipynb (Description: Data Visualization)")
+    print(Fore.GREEN + "6. Open notebook6.ipynb (Description: Report Generation)")
+    print(Fore.MAGENTA + "\nNote: You can open any of the notebooks by selecting its number.\n")
+
+if __name__ == "__main__":
+    while True:
+        display_menu()
+        try:
+            choice = int(input(Fore.CYAN + "Enter your choice (1-6) or 0 to exit: "))
+            if choice == 0:
+                print(Fore.YELLOW + "Exiting the notebook selector. Goodbye!")
+                break
+            run_notebook(choice)
+        except ValueError:
+            print(Fore.RED + "Invalid input. Please enter a valid number between 1 and 6.")
