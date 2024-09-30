@@ -1,4 +1,74 @@
-import subprocess
+
+import os
+
+def run_script(option):
+    # Dictionary mapping options to file paths
+    scripts = {
+        1: "file1.py",
+        2: "file2.ipynb",
+        3: "file3.py",
+        4: "file4.ipynb",
+        5: "file5.py",
+        6: "file6.ipynb"
+    }
+
+    # Validate option
+    if option not in scripts:
+        print("Invalid option. Please choose a number between 1 and 6.")
+        return
+    
+    script_to_run = scripts[option]
+
+    # Check if it's a .py or .ipynb file
+    if script_to_run.endswith('.py'):
+        try:
+            # Open and execute the Python script
+            with open(script_to_run, 'r') as file:
+                exec(file.read())
+            print(f"{script_to_run} ran successfully!")
+        except FileNotFoundError:
+            print(f"Error: {script_to_run} not found!")
+        except Exception as e:
+            print(f"Error running {script_to_run}: {e}")
+    elif script_to_run.endswith('.ipynb'):
+        try:
+            print(f"Running {script_to_run} as a Jupyter Notebook...")
+            os.system(f'jupyter nbconvert --to notebook --execute {script_to_run} --output {script_to_run}')
+            print(f"{script_to_run} ran successfully!")
+        except Exception as e:
+            print(f"Error running {script_to_run}: {e}")
+
+def display_menu():
+    print("\nChoose a script to run:")
+    print("1. Run file1.py")
+    print("2. Run file2.ipynb")
+    print("3. Run file3.py")
+    print("4. Run file4.ipynb")
+    print("5. Run file5.py")
+    print("6. Run file6.ipynb")
+
+if __name__ == "__main__":
+    while True:
+        display_menu()
+        try:
+            choice = int(input("Enter your choice (1-6) or 0 to exit: "))
+            if choice == 0:
+                print("Exiting. Goodbye!")
+                break
+            run_script(choice)
+        except ValueError:
+            print("Invalid input. Please enter a valid number.")
+
+
+
+
+
+
+
+
+
+
+umm import subprocess
 import os
 from colorama import init, Fore, Style
 
