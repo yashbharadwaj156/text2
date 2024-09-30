@@ -1,4 +1,165 @@
 
+
+import os
+import subprocess
+from colorama import init, Fore, Style
+
+# Initialize colorama for colorful terminal output
+init(autoreset=True)
+
+def run_notebook(option):
+    # Dictionary mapping options to notebook paths and descriptions
+    notebooks = {
+        1: {"path": "notebook1.ipynb", "description": "Description of notebook 1"},
+        2: {"path": "notebook2.ipynb", "description": "Description of notebook 2"},
+        3: {"path": "notebook3.ipynb", "description": "Description of notebook 3"},
+        4: {"path": "notebook4.ipynb", "description": "Description of notebook 4"},
+        5: {"path": "notebook5.ipynb", "description": "Description of notebook 5"},
+        6: {"path": "notebook6.ipynb", "description": "Description of notebook 6"}
+    }
+
+    # Validate option
+    if option not in notebooks:
+        print(Fore.RED + "Invalid option. Please choose a number between 1 and 6.")
+        return
+    
+    notebook_to_run = notebooks[option]["path"]
+
+    # Check if the notebook file exists
+    if not os.path.exists(notebook_to_run):
+        print(Fore.RED + f"Error: {notebook_to_run} not found!")
+        return
+
+    output_name = notebook_to_run.replace('.ipynb', '_output.ipynb')
+
+    # Command to run the notebook and save the output
+    command = [
+        'jupyter', 'nbconvert',
+        '--to', 'notebook',
+        '--execute',
+        '--output', output_name,
+        '--allow-errors',  # Continue executing even if there are errors
+        notebook_to_run
+    ]
+
+    try:
+        print(Fore.YELLOW + f"Running {notebook_to_run} and saving output to {output_name}...")
+        
+        # Run the command to execute the notebook
+        result = subprocess.run(command, capture_output=True, text=True)
+
+        if result.returncode == 0:
+            print(Fore.GREEN + f"{notebook_to_run} ran successfully! Output saved to {output_name}.")
+        else:
+            print(Fore.RED + f"Error running {notebook_to_run}:\n{result.stderr}")
+    except Exception as e:
+        print(Fore.RED + f"Error executing {notebook_to_run}: {e}")
+
+def display_menu():
+    print(Style.BRIGHT + Fore.CYAN + "\nWelcome to the Jupyter Notebook Selector!\n")
+    print(Style.BRIGHT + Fore.BLUE + "Choose a notebook to run:")
+    
+    # Display options with descriptions
+    print(Fore.GREEN + "1. Run notebook1.ipynb (Description: Data Cleaning)")
+    print(Fore.GREEN + "2. Run notebook2.ipynb (Description: Data Analysis)")
+    print(Fore.GREEN + "3. Run notebook3.ipynb (Description: Model Training)")
+    print(Fore.GREEN + "4. Run notebook4.ipynb (Description: Model Evaluation)")
+    print(Fore.GREEN + "5. Run notebook5.ipynb (Description: Data Visualization)")
+    print(Fore.GREEN + "6. Run notebook6.ipynb (Description: Report Generation)")
+    print(Fore.MAGENTA + "\nNote: You can run any of the notebooks by selecting its number.\n")
+
+if __name__ == "__main__":
+    while True:
+        display_menu()
+        try:
+            choice = int(input(Fore.CYAN + "Enter your choice (1-6) or 0 to exit: "))
+            if choice == 0:
+                print(Fore.YELLOW + "Exiting the notebook selector. Goodbye!")
+                break
+            run_notebook(choice)
+        except ValueError:
+            print(Fore.RED + "Invalid input. Please enter a valid number between 1 and 6.")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import os
+import subprocess
+
+def run_notebook(notebook_name):
+    # Define the output notebook name
+    output_name = notebook_name.replace('.ipynb', '_output.ipynb')
+    
+    # Command to execute the notebook and save the output
+    command = [
+        'jupyter', 'nbconvert', 
+        '--to', 'notebook', 
+        '--execute', 
+        notebook_name, 
+        '--output', output_name,
+        '--allow-errors'  # This allows the notebook to continue execution despite errors
+    ]
+    
+    # Run the command
+    result = subprocess.run(command, capture_output=True, text=True)
+    
+    if result.returncode == 0:
+        print(f"Successfully executed {notebook_name}. Output saved to {output_name}.")
+    else:
+        print(f"Error executing {notebook_name}:\n{result.stderr}")
+
+def display_menu():
+    print("\nChoose a Jupyter Notebook to run:")
+    print("1. Run file1.ipynb")
+    print("2. Run file2.ipynb")
+    print("3. Run file3.ipynb")
+    print("4. Run file4.ipynb")
+    print("5. Run file5.ipynb")
+    print("6. Run file6.ipynb")
+    print("0. Exit")
+
+if __name__ == "__main__":
+    while True:
+        display_menu()
+        choice = input("Enter your choice (0-6): ")
+        
+        if choice == '0':
+            print("Exiting the notebook runner. Goodbye!")
+            break
+        
+        notebook_files = {
+            '1': 'file1.ipynb',
+            '2': 'file2.ipynb',
+            '3': 'file3.ipynb',
+            '4': 'file4.ipynb',
+            '5': 'file5.ipynb',
+            '6': 'file6.ipynb'
+        }
+        
+        # Check if choice is valid
+        if choice in notebook_files:
+            run_notebook(notebook_files[choice])
+        else:
+            print("Invalid choice. Please enter a number between 0 and 6.")
+
+
+
+
+
+
+
+
+
 import os
 
 def run_script(option):
