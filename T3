@@ -1,0 +1,147 @@
+import subprocess
+import os
+from colorama import init, Fore, Style
+
+# Initialize colorama for colorful terminal output
+init(autoreset=True)
+
+def run_script(option):
+    # Dictionary mapping options to file paths and descriptions
+    scripts = {
+        1: {"path": "file1.py", "description": "Description of script 1"},
+        2: {"path": "file2.py", "description": "Description of script 2"},
+        3: {"path": "file3.py", "description": "Description of script 3"},
+        4: {"path": "file4.py", "description": "Description of script 4"},
+        5: {"path": "file5.py", "description": "Description of script 5"},
+        6: {"path": "file6.py", "description": "Description of script 6"}
+    }
+
+    # Validate option
+    if option not in scripts:
+        print(Fore.RED + "Invalid option. Please choose a number between 1 and 6.")
+        return
+    
+    script_to_run = scripts[option]["path"]
+    output_file = f"{os.path.splitext(script_to_run)[0]}_output.txt"  # Name output file
+
+    # Check if the script file exists
+    if not os.path.exists(script_to_run):
+        print(Fore.RED + f"Error: {script_to_run} not found!")
+        return
+
+    try:
+        print(Fore.YELLOW + f"Running {script_to_run}...")
+
+        # Run the script and capture output in a text file
+        with open(output_file, 'w') as f:
+            process = subprocess.run(["python", script_to_run], stdout=f, stderr=subprocess.STDOUT, text=True)
+        
+        print(Fore.GREEN + f"{script_to_run} ran successfully! Output saved to {output_file}")
+    except Exception as e:
+        print(Fore.RED + f"Error running {script_to_run}: {e}")
+
+def display_menu():
+    print(Style.BRIGHT + Fore.CYAN + "\nWelcome to the Python Script Selector!\n")
+    print(Style.BRIGHT + Fore.BLUE + "Choose a script to run:")
+    
+    # Display options with descriptions
+    print(Fore.GREEN + "1. Run file1.py (Description: Data Cleaning)")
+    print(Fore.GREEN + "2. Run file2.py (Description: Data Analysis)")
+    print(Fore.GREEN + "3. Run file3.py (Description: Model Training)")
+    print(Fore.GREEN + "4. Run file4.py (Description: Model Evaluation)")
+    print(Fore.GREEN + "5. Run file5.py (Description: Data Visualization)")
+    print(Fore.GREEN + "6. Run file6.py (Description: Report Generation)")
+    print(Fore.MAGENTA + "\nNote: You can run any of the scripts by selecting its number.\n")
+
+if __name__ == "__main__":
+    while True:
+        display_menu()
+        try:
+            choice = int(input(Fore.CYAN + "Enter your choice (1-6) or 0 to exit: "))
+            if choice == 0:
+                print(Fore.YELLOW + "Exiting the script selector. Goodbye!")
+                break
+            run_script(choice)
+        except ValueError:
+            print(Fore.RED + "Invalid input. Please enter a valid number between 1 and 6.")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import subprocess
+import os
+from colorama import init, Fore, Style
+
+# Initialize colorama for colorful terminal output
+init(autoreset=True)
+
+def run_script(option):
+    # Dictionary mapping options to file paths and descriptions
+    scripts = {
+        1: {"path": "file1.py", "description": "Description of script 1"},
+        2: {"path": "file2.py", "description": "Description of script 2"},
+        3: {"path": "file3.py", "description": "Description of script 3"},
+        4: {"path": "file4.py", "description": "Description of script 4"},
+        5: {"path": "file5.py", "description": "Description of script 5"},
+        6: {"path": "file6.py", "description": "Description of script 6"}
+    }
+
+    # Validate option
+    if option not in scripts:
+        print(Fore.RED + "Invalid option. Please choose a number between 1 and 6.")
+        return
+    
+    script_to_run = scripts[option]["path"]
+
+    # Check if the script file exists
+    if not os.path.exists(script_to_run):
+        print(Fore.RED + f"Error: {script_to_run} not found!")
+        return
+
+    try:
+        print(Fore.YELLOW + f"Running {script_to_run}...")
+        subprocess.run(["python", script_to_run])
+        print(Fore.GREEN + f"{script_to_run} ran successfully!")
+    except Exception as e:
+        print(Fore.RED + f"Error running {script_to_run}: {e}")
+
+def display_menu():
+    print(Style.BRIGHT + Fore.CYAN + "\nWelcome to the Python Script Selector!\n")
+    print(Style.BRIGHT + Fore.BLUE + "Choose a script to run:")
+    
+    # Display options with descriptions
+    print(Fore.GREEN + "1. Run file1.py (Description: Data Cleaning)")
+    print(Fore.GREEN + "2. Run file2.py (Description: Data Analysis)")
+    print(Fore.GREEN + "3. Run file3.py (Description: Model Training)")
+    print(Fore.GREEN + "4. Run file4.py (Description: Model Evaluation)")
+    print(Fore.GREEN + "5. Run file5.py (Description: Data Visualization)")
+    print(Fore.GREEN + "6. Run file6.py (Description: Report Generation)")
+    print(Fore.MAGENTA + "\nNote: You can run any of the scripts by selecting its number.\n")
+
+if __name__ == "__main__":
+    while True:
+        display_menu()
+        try:
+            choice = int(input(Fore.CYAN + "Enter your choice (1-6) or 0 to exit: "))
+            if choice == 0:
+                print(Fore.YELLOW + "Exiting the script selector. Goodbye!")
+                break
+            run_script(choice)
+        except ValueError:
+            print(Fore.RED + "Invalid input. Please enter a valid number between 1 and 6.")
