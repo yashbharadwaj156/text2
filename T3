@@ -1,3 +1,98 @@
+def preprocess_and_run(option):
+    # Preprocessing and running the corresponding model based on the selected option
+    if option == 1:
+        # Code for dataset 1 preprocessing and model execution
+        print("Processing Dataset 1...")
+        # Add your dataset 1 preprocessing code here
+        # For example:
+        # df = pd.read_csv("dataset1.csv")
+        # Preprocessing steps...
+
+        # Running the model
+        print("Running the model for Dataset 1...")
+        # Add your model execution code here
+        # For example:
+        # result = model1.predict(df)
+        # Save result to a file
+        with open("result1.txt", "w") as f:
+            f.write("Results for Dataset 1")
+
+    elif option == 2:
+        # Code for dataset 2 preprocessing and model execution
+        print("Processing Dataset 2...")
+        # Add your dataset 2 preprocessing code here
+
+        print("Running the model for Dataset 2...")
+        # Add your model execution code here
+        with open("result2.txt", "w") as f:
+            f.write("Results for Dataset 2")
+
+    elif option == 3:
+        # Code for dataset 3 preprocessing and model execution
+        print("Processing Dataset 3...")
+        # Add your dataset 3 preprocessing code here
+
+        print("Running the model for Dataset 3...")
+        with open("result3.txt", "w") as f:
+            f.write("Results for Dataset 3")
+
+    elif option == 4:
+        # Code for dataset 4 preprocessing and model execution
+        print("Processing Dataset 4...")
+        # Add your dataset 4 preprocessing code here
+
+        print("Running the model for Dataset 4...")
+        with open("result4.txt", "w") as f:
+            f.write("Results for Dataset 4")
+
+    elif option == 5:
+        # Code for dataset 5 preprocessing and model execution
+        print("Processing Dataset 5...")
+        # Add your dataset 5 preprocessing code here
+
+        print("Running the model for Dataset 5...")
+        with open("result5.txt", "w") as f:
+            f.write("Results for Dataset 5")
+
+    elif option == 6:
+        # Code for dataset 6 preprocessing and model execution
+        print("Processing Dataset 6...")
+        # Add your dataset 6 preprocessing code here
+
+        print("Running the model for Dataset 6...")
+        with open("result6.txt", "w") as f:
+            f.write("Results for Dataset 6")
+
+    else:
+        print("Invalid option. Please select a number between 1 and 6.")
+
+def display_menu():
+    print("\nWelcome to the Dataset Selector!\n")
+    print("Choose a dataset to process:")
+    print("1. Dataset 1")
+    print("2. Dataset 2")
+    print("3. Dataset 3")
+    print("4. Dataset 4")
+    print("5. Dataset 5")
+    print("6. Dataset 6")
+    print("0. Exit")
+
+if __name__ == "__main__":
+    while True:
+        display_menu()
+        choice = int(input("Enter your choice (1-6) or 0 to exit: "))
+        if choice == 0:
+            print("Exiting the selector. Goodbye!")
+            break
+        preprocess_and_run(choice)
+
+
+
+
+
+
+
+
 
 
 import os
