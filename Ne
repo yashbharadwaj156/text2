@@ -1,0 +1,37 @@
+from sklearn.feature_selection import SelectKBest, chi2
+import pandas as pd
+
+# Step 1: Initialize SelectKBest with Chi-Square scoring and set k='all' to select all features initially
+selector = SelectKBest(score_func=chi2, k='all')
+
+# Step 2: Fit the selector to the training data to calculate Chi-Square scores
+selector.fit(X_train, y_train)
+
+# Step 3: Retrieve the Chi-Square scores for each feature
+scores = selector.scores_
+
+# Step 4: Define an automatic threshold based on the mean (or median) score
+threshold = scores.mean()  # Can change to scores.median() for a stricter threshold
+
+# Step 5: Select only features with scores above the threshold
+selected_features = [i for i, score in enumerate(scores) if score >= threshold]
+
+# Step 6: Apply the selection to the training and test sets
+X_train = X_train[:, selected_features]
+X_test = X_test[:, selected_features]
+
+# Step 7: Store scores and selected feature names in a DataFrame for review
+chi2_scores = pd.DataFrame(scores, columns=["chi2_score"])
+
+# Step 8: Sort features by their Chi-Square score in descending order
+chi2_scores = chi2_scores.sort_values(by="chi2_score", ascending=False)
+
+# Step 9: Map feature indices back to their names and store them in the DataFrame
+feature_index = [features[i] for i in list(chi2_scores.index)]
+chi2_scores["Feature_Name"] = feature_index
+
+# Display the DataFrame with features sorted by Chi-Square score
+chi2_scores
+
+# Step 10: Display the new shape of the test set after feature selection
+X_test.shape
