@@ -1,0 +1,66 @@
+from sklearn.feature_selection import SelectKBest, chi2
+import pandas as pd
+
+# Step 1: Initialize the SelectKBest with the Chi-Square scoring function
+# Set 'k' to select the top features (replace with the desired number of features)
+k_best = SelectKBest(score_func=chi2, k=10)  # Adjust 'k' as needed
+
+# Step 2: Fit the selector to the training data
+k_best.fit(X_train, y_train)
+
+# Step 3: Get feature scores (Chi-Square scores) and store them in a DataFrame
+chi2_scores = pd.DataFrame(k_best.scores_, columns=["chi2_score"])
+
+# Step 4: Sort features by their Chi-Square score in descending order
+chi2_scores = chi2_scores.sort_values(by="chi2_score", ascending=False)
+
+# Step 5: Map feature indices back to their names and store them in the DataFrame
+feature_index = [features[i] for i in list(chi2_scores.index)]
+chi2_scores["Feature_Name"] = feature_index
+
+# Display the DataFrame with features sorted by Chi-Square score
+chi2_scores
+
+# Step 6: Transform the training and test sets to include only selected features
+X_train = k_best.transform(X_train)
+X_test = k_best.transform(X_test)
+
+# Step 7: Display the new shape of the test set after feature selection
+X_test.shape
+
+
+
+
+
+
+
+2
+
+
+from sklearn.feature_selection import SelectPercentile, chi2
+
+# Automatically select the top 20% of features
+selector = SelectPercentile(score_func=chi2, percentile=20)
+X_train = selector.fit_transform(X_train, y_train)
+X_test = selector.transform(X_test)
+
+
+3
+
+from sklearn.feature_selection import SelectKBest, chi2
+
+# Set an initial high value for k and fit the selector
+selector = SelectKBest(score_func=chi2, k='all')
+selector.fit(X_train, y_train)
+
+# Find an automatic threshold based on the median or mean score
+scores = selector.scores_
+threshold = scores.mean()  # or scores.median()
+
+# Retain only features above the threshold
+selected_features = [i for i, score in enumerate(scores) if score >= threshold]
+
+# Apply the selection to the training and test sets
+X_train = X_train[:, selected_features]
+X_test = X_test[:, selected_features]
+
